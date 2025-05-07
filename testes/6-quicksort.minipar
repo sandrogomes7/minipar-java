@@ -1,0 +1,45 @@
+# --- Função Quicksort recursiva ---
+func quicksort(array: [number]) -> [number] {
+    if (len(array) <= 1) {
+        return array
+    } else {
+        pivot: number = array[0]
+        menores: [number] = []
+        maiores: [number] = []
+        for(i: number = 1; i < len(array); i = i + 1) {
+            if (array[i] <= pivot) {
+                menores = menores + [array[i]]
+            } else {
+                maiores = maiores + [array[i]]
+            }
+        }
+        return quicksort(menores) + [pivot] + quicksort(maiores)
+    }
+}
+
+# --- Função de interface para usuário ---
+func exibirInterface() -> void {
+    print("==== Ordenação com Quicksort ====")
+    print("Insira os elementos do vetor separados por espaço:")
+    entrada: string = input()
+    partes: [string] = split(entrada, " ")
+    valido: bool = true
+    array: [number] = []
+    for(i: number = 0; i < len(partes); i = i + 1) {
+        if (!isnum(partes[i])) {
+            valido = false
+            break
+        }
+        array = array + [to_number(partes[i])]
+    }
+    if (!valido) {
+            print("Por favor, insira apenas números separados por espaço.")
+            exibirInterface()
+    } else {
+        print("Vetor original:", array)
+        ordenado: [number] = quicksort(array)
+        print("Vetor ordenado:", ordenado)
+    }
+}
+
+exibirInterface()

@@ -1,0 +1,166 @@
+# Histórico de compras do usuário
+user_purchase_history: [string] = ["Smartphone", "Jeans", "Micro-ondas", "Ficção"]
+
+# Categorias de produtos
+category_eletronicos: [string] = ["Smartphone", "Laptop", "Tablet", "Fones de ouvido"]
+category_roupas: [string] = ["Camisa", "Jeans", "Jaqueta", "Sapatos"]
+category_eletrodomesticos: [string] = ["Geladeira", "Micro-ondas", "Máquina de lavar", "Ar condicionado"]
+category_livros: [string] = ["Ficção", "Não-ficção", "Ficção científica", "Fantasia"]
+all_products: [string] = category_eletronicos + category_roupas + category_eletrodomesticos + category_livros
+
+# Funções auxiliares
+func exp(x: number) -> number {
+    termo: number = 1
+    soma: number = 1
+    n: number = 1
+    while (n < 50) {
+        termo = termo * (x / n)
+        soma = soma + termo
+        n = n + 1
+    }
+    return soma
+}
+
+func sigmoid(x: number) -> number {
+    return 1 / (1 + exp(-x))
+}
+
+func relu(x: number) -> number {
+    if (x > 0) { return x } else { return 0 }
+}
+
+# Codificação do histórico
+func encode_history(history: [string]) -> [number] {
+    encoded: [number] = []
+    i: number = 0
+    while (i < len(all_products)) {
+        encoded = encoded + [0]
+        j: number = 0
+        while (j < len(history)) {
+            if (history[j] == all_products[i]) {
+                encoded[i] = 1
+            }
+            j = j + 1
+        }
+        i = i + 1
+    }
+    return encoded
+}
+
+# Rede Neural
+func neural_network(encoded: [number]) -> [number] {
+    input_size: number = len(encoded)
+    hidden_size: number = 10
+    output_size: number = input_size
+
+    # Inicialização dos pesos (flat arrays)
+    W1: [number] = []
+    i: number = 0
+    while (i < input_size * hidden_size) {
+        W1 = W1 + [0.5]
+        i = i + 1
+    }
+
+    b1: [number] = []
+    i = 0
+    while (i < hidden_size) {
+        b1 = b1 + [0.5]
+        i = i + 1
+    }
+
+    W2: [number] = []
+    i = 0
+    while (i < hidden_size * output_size) {
+        W2 = W2 + [0.5]
+        i = i + 1
+    }
+
+    b2: [number] = []
+    i = 0
+    while (i < output_size) {
+        b2 = b2 + [0.5]
+        i = i + 1
+    }
+
+    # Forward propagation
+    # Camada oculta
+    hidden_input: [number] = []
+    i = 0
+    while (i < hidden_size) {
+        sum: number = 0
+        j: number = 0
+        while (j < input_size) {
+            sum = sum + encoded[j] * W1[j * hidden_size + i]
+            j = j + 1
+        }
+        hidden_input = hidden_input + [sum + b1[i]]
+        i = i + 1
+    }
+
+    hidden_output: [number] = []
+    i = 0
+    while (i < hidden_size) {
+        hidden_output = hidden_output + [relu(hidden_input[i])]
+        i = i + 1
+    }
+
+    # Camada de saída
+    output_input: [number] = []
+    i = 0
+    while (i < output_size) {
+        sum: number = 0
+        j: number = 0
+        while (j < hidden_size) {
+            sum = sum + hidden_output[j] * W2[j * output_size + i]
+            j = j + 1
+        }
+        output_input = output_input + [sum + b2[i]]
+        i = i + 1
+    }
+
+    # Ativação final
+    predictions: [number] = []
+    i = 0
+    while (i < output_size) {
+        predictions = predictions + [sigmoid(output_input[i])]
+        i = i + 1
+    }
+
+    return predictions
+}
+
+# Gerar recomendações
+func recommend() -> [string] {
+    encoded: [number] = encode_history(user_purchase_history)
+    predictions: [number] = neural_network(encoded)
+
+    recommendations: [string] = []
+    i: number = 0
+    while (i < len(predictions)) {
+        if (predictions[i] > 0.5) {
+            # Verificar se não está no histórico
+            found: number = 0
+            j: number = 0
+            while (j < len(user_purchase_history)) {
+                if (user_purchase_history[j] == all_products[i]) {
+                    found = 1
+                }
+                j = j + 1
+            }
+            if (found == 0) {
+                recommendations = recommendations + [all_products[i]]
+            }
+        }
+        i = i + 1
+    }
+    return recommendations
+}
+
+# Execução principal
+print("Produtos recomendados para você:")
+recomendados: [string] = recommend()
+i: number = 0
+while (i < len(recomendados)) {
+    print(recomendados[i])
+    i = i + 1
+}

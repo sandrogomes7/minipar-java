@@ -1,0 +1,133 @@
+# Função para gerar número pseudoaleatório entre 0 e 1
+var_rand: number = 0.1  # Valor inicial da semente
+
+func random() -> number {
+    var_rand = (var_rand * 9301 + 49297) % 233280
+    return var_rand / 233280
+}
+
+# Função exponencial aproximada: exp(x)
+func exp(x: number) -> number {
+    termo: number = 1
+    soma: number = 1
+    n: number = 1
+    while (n < 50) {
+        termo = termo * (x / n)
+        soma = soma + termo
+        n = n + 1
+    }
+    return soma
+}
+
+# Função sigmoide
+func sigmoid(x: number) -> number {
+    return 1 / (1 + exp(-x))
+}
+
+# Derivada da sigmoide
+func sigmoid_derivative(x: number) -> number {
+    return x * (1 - x)
+}
+
+# Dados de entrada (função XOR) sem matriz
+input_x: [number] = [0, 0, 1, 1]
+input_y: [number] = [0, 1, 0, 1]
+outputs: [number] = [0, 1, 1, 0]
+
+# Inicialização de parâmetros
+weights_input0: [number] = [0, 0, 0]
+weights_input1: [number] = [0, 0, 0]
+weights_hidden_output: [number] = [0, 0, 0]
+bias_hidden: [number] = [0, 0, 0]
+bias_output: number = 0
+
+learning_rate: number = 0.2
+epoch: number = 0
+
+# Inicializa pesos de input->hidden e bias oculto
+j: number = 0
+while (j < 3) {
+    weights_input0[j] = random()
+    weights_input1[j] = random()
+    bias_hidden[j] = random()
+    j = j + 1
+}
+# Inicializa pesos de hidden->output e bias de saída
+j = 0
+while (j < 3) {
+    weights_hidden_output[j] = random()
+    j = j + 1
+}
+bias_output = random()
+
+# Treinamento
+while (epoch < 20000) {
+    i: number = 0
+    while (i < 4) {
+        # Feedforward
+        hidden_input: [number] = [0, 0, 0]
+        hidden_output: [number] = [0, 0, 0]
+        k: number = 0
+        while (k < 3) {
+            hidden_input[k] = input_x[i] * weights_input0[k] + input_y[i] * weights_input1[k] + bias_hidden[k]
+            hidden_output[k] = sigmoid(hidden_input[k])
+            k = k + 1
+        }
+        # Saída
+        output_input: number = 0
+        m: number = 0
+        while (m < 3) {
+            output_input = output_input + hidden_output[m] * weights_hidden_output[m]
+            m = m + 1
+        }
+        output_input = output_input + bias_output
+        predicted: number = sigmoid(output_input)
+        # Backpropagation
+        err: number = outputs[i] - predicted
+        d_out: number = err * sigmoid_derivative(predicted)
+        d_hidden: [number] = [0, 0, 0]
+        m = 0
+        while (m < 3) {
+            d_hidden[m] = d_out * weights_hidden_output[m] * sigmoid_derivative(hidden_output[m])
+            m = m + 1
+        }
+        # Ajuste hidden->output
+        m = 0
+        while (m < 3) {
+            weights_hidden_output[m] = weights_hidden_output[m] + hidden_output[m] * d_out * learning_rate
+            m = m + 1
+        }
+        bias_output = bias_output + d_out * learning_rate
+        # Ajuste input->hidden
+        m = 0
+        while (m < 3) {
+            weights_input0[m] = weights_input0[m] + input_x[i] * d_hidden[m] * learning_rate
+            weights_input1[m] = weights_input1[m] + input_y[i] * d_hidden[m] * learning_rate
+            bias_hidden[m]   = bias_hidden[m]   + d_hidden[m] * learning_rate
+            m = m + 1
+        }
+        i = i + 1
+    }
+    epoch = epoch + 1
+}
+
+# Testando a rede treinada com saída formatada
+for(i: number = 0; i < 4; i = i + 1) {
+    hidden_input: [number] = [0, 0, 0]
+    hidden_output: [number] = [0, 0, 0]
+    k: number = 0
+    while (k < 3) {
+        hidden_input[k] = input_x[i] * weights_input0[k] + input_y[i] * weights_input1[k] + bias_hidden[k]
+        hidden_output[k] = sigmoid(hidden_input[k])
+        k = k + 1
+    }
+    output_input: number = 0
+    m: number = 0
+    while (m < 3) {
+        output_input = output_input + hidden_output[m] * weights_hidden_output[m]
+        m = m + 1
+    }
+    output_input = output_input + bias_output
+    predicted: number = sigmoid(output_input)
+    print("Input: [",input_x[i],",", input_y[i],"], Predicted Output: ", predicted)
+}

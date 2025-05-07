@@ -1,0 +1,11 @@
+c_channel client {"localhost", 3333}
+while(true){
+    print("Digite a string para enviar ao servidor (ou 'exit' para sair):")
+    entrada: string = input()
+    if (entrada == "exit") {
+        break
+    }
+    ret: string = send(client, entrada)
+    print(ret, "\n")
+}
+close(client)
