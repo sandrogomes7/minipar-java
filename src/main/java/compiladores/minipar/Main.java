@@ -43,7 +43,7 @@ public class Main {
         } catch (ParseException e) {
             System.err.println("Erro sintático: " + e.getMessage());
         } catch (RuntimeException e) {
-            System.err.println("Erro: " + e.getMessage());
+            System.err.println(e.getMessage());
         }
     }
 }
