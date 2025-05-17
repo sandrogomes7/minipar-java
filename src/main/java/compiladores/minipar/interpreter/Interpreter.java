@@ -221,7 +221,56 @@ public class Interpreter implements InterpreterVisitor {
                     try {
                         Socket clientSocket = serverSocket.accept();
                         System.out.println("Conexão aceita de: " + clientSocket.getInetAddress());
-                        // Aqui você pode chamar a função 'calc' com os dados recebidos, etc.
+
+                        try (BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
+
+                            String input;
+                            while ((input = in.readLine()) != null) {
+                                if ("exit".equalsIgnoreCase(input.trim())) {
+                                    out.println("Conexão encerrada.");
+                                    break; // Sai do loop e fecha a conexão
+                                }
+
+                                try {
+                                    String[] parts = input.split(" ");
+                                    if (parts.length == 3) {
+                                        double num1 = Double.parseDouble(parts[0]);
+                                        String operator = parts[1];
+                                        double num2 = Double.parseDouble(parts[2]);
+                                        double result;
+
+                                        switch (operator) {
+                                            case "+":
+                                                result = num1 + num2;
+                                                break;
+                                            case "-":
+                                                result = num1 - num2;
+                                                break;
+                                            case "*":
+                                                result = num1 * num2;
+                                                break;
+                                            case "/":
+                                                if (num2 == 0) {
+                                                    throw new ArithmeticException("Divisão por zero");
+                                                }
+                                                result = num1 / num2;
+                                                break;
+                                            default:
+                                                throw new IllegalArgumentException("Operador inválido: " + operator);
+                                        }
+
+                                        out.println("Resultado: " + result);
+                                    } else {
+                                        out.println("Formato inválido. Use: número operador número (ex: 5 + 3)");
+                                    }
+                                } catch (Exception e) {
+                                    out.println("Erro 1 : " + e.getMessage());
+                                }
+                            }
+                        } catch (IOException e) {
+                            System.err.println("Erro na comunicação com o cliente: " + e.getMessage());
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                         break;
